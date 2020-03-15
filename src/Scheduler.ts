@@ -1,9 +1,9 @@
 export enum EventType {
-  ARRIVAL,
-  DEPARTURE
+  ARRIVAL = 'ARRIVAL',
+  DEPARTURE = 'DEPARTURE'
 }
 
-interface Event {
+export interface Event {
   type: EventType;
   time: number;
 }
