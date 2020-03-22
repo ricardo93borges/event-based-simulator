@@ -19,10 +19,10 @@ export default class Scheduler {
     return (end - start) * random + start;
   }
 
-  schedule = (type: EventType, start: number, end: number, random: number): void => {
+  schedule = (type: EventType, start: number, end: number, random: number, globalTime = 0): void => {
     this.events.push({
       type,
-      time: this.calculateTime(start, end, random)
+      time: globalTime + this.calculateTime(start, end, random)
     });
   }
 
