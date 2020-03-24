@@ -42,7 +42,7 @@ export default class Queue {
   }
 
   execute(): void {
-    const random = new Random(4, 4, this.maxIterations, 7);
+    const random = new Random(4, 4, this.maxIterations, 5);
     const scheduler = new Scheduler();
 
     scheduler.schedule(
@@ -74,7 +74,6 @@ export default class Queue {
               this.departureIntervalStart,
               this.departureIntervalEnd,
               random.generate(),
-              this.globalTime
             );
           }
         } else {
@@ -85,7 +84,6 @@ export default class Queue {
           this.arrivalIntervalStart,
           this.arrivalIntervalEnd,
           random.generate(),
-          this.globalTime
         );
       } else {
         this.countTime(nextEvent.time);
@@ -98,13 +96,13 @@ export default class Queue {
             this.departureIntervalStart,
             this.departureIntervalEnd,
             random.generate(),
-            this.globalTime
           );
         }
       }
     }
 
     console.log('loss', this.loss);
+    console.log('length', this.length);
     console.log('global time', this.globalTime);
     console.log('state', this.state);
     this.results();
@@ -114,9 +112,10 @@ export default class Queue {
   results(): void {
     console.log('queue state | time | probability');
     for (let i = 0; i < this.state.length; i++) {
-      console.log(`${i} | ${this.state[i]} | ${(this.state[i] / this.globalTime) * 100}%`);
+      const percent = (this.state[i] / this.globalTime) * 100;
+      console.log(`${i} | ${this.state[i].toFixed(4)} | ${percent.toFixed(4)}%`);
     }
-    console.log(`total | ${this.globalTime} | 100% `);
+    console.log(`total | ${this.globalTime.toFixed(4)} | 100% `);
   }
 
 }
