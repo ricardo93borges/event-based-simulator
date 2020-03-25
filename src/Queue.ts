@@ -37,19 +37,21 @@ export default class Queue {
 
   countTime(time: number): void {
     const accumulatedTime = this.state[this.length] ? this.state[this.length] : 0;
-    this.globalTime = this.globalTime + time;
-    this.state[this.length] = accumulatedTime + time;
+    const delta = time - this.globalTime;
+    this.globalTime = this.globalTime + delta;
+    this.state[this.length] = accumulatedTime + delta;
   }
 
   execute(): void {
-    const random = new Random(4, 4, this.maxIterations, 5);
+    const random = new Random(4, 4, this.maxIterations, 1);
     const scheduler = new Scheduler();
 
     scheduler.schedule(
       EventType.ARRIVAL,
       this.arrivalIntervalStart,
       this.arrivalIntervalEnd,
-      random.generate()
+      random.generate(),
+      this.globalTime
     );
 
     let nextEvent: Event | undefined;
@@ -74,6 +76,7 @@ export default class Queue {
               this.departureIntervalStart,
               this.departureIntervalEnd,
               random.generate(),
+              this.globalTime
             );
           }
         } else {
@@ -84,6 +87,7 @@ export default class Queue {
           this.arrivalIntervalStart,
           this.arrivalIntervalEnd,
           random.generate(),
+          this.globalTime
         );
       } else {
         this.countTime(nextEvent.time);
@@ -96,15 +100,17 @@ export default class Queue {
             this.departureIntervalStart,
             this.departureIntervalEnd,
             random.generate(),
+            this.globalTime
           );
         }
       }
     }
 
     console.log('loss', this.loss);
-    console.log('length', this.length);
-    console.log('global time', this.globalTime);
-    console.log('state', this.state);
+    // console.log('length', this.length);
+    // console.log('global time', this.globalTime);
+    // console.log('state', this.state);
+    // console.log('history', scheduler.history.sort((a, b) => a.time > b.time ? 1 : -1));
     this.results();
     process.exit(0);
   }

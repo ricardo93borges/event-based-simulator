@@ -10,19 +10,27 @@ export interface Event {
 
 export default class Scheduler {
   events: Event[];
+  history: Event[];
 
   constructor() {
     this.events = [];
+    this.history = [];
   }
 
   calculateTime = (start: number, end: number, random: number): number => {
     return (end - start) * random + start;
   }
 
-  schedule = (type: EventType, start: number, end: number, random: number): void => {
+  schedule = (type: EventType, start: number, end: number, random: number, globalTime: number): void => {
+    const time = globalTime + this.calculateTime(start, end, random);
+
     this.events.push({
       type,
-      time: this.calculateTime(start, end, random)
+      time
+    });
+    this.history.push({
+      type,
+      time
     });
   }
 
