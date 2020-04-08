@@ -1,6 +1,17 @@
 import Scheduler, { EventType, Event } from './Scheduler';
 import Random from './Random';
 
+export interface QueueParams {
+  arrivalIntervalStart: number;
+  arrivalIntervalEnd: number;
+  departureIntervalStart: number;
+  departureIntervalEnd: number;
+  servers: number;
+  capacity: number;
+  totalIterations: number;
+  random: Random;
+  scheduler: Scheduler;
+}
 export default class Queue {
   arrivalIntervalStart: number;
   arrivalIntervalEnd: number;
@@ -9,30 +20,27 @@ export default class Queue {
   servers: number;
   capacity: number;
   state: number[];
-  maxIterations: number;
+  totalIterations: number;
   length: number;
   globalTime: number;
   loss: number;
+  random: Random;
+  scheduler: Scheduler;
 
-  constructor(
-    arrivalIntervalStart: number,
-    arrivalIntervalEnd: number,
-    departureIntervalStart: number,
-    departureIntervalEnd: number,
-    servers: number,
-    capacity: number,
-    maxIterations: number) {
-    this.arrivalIntervalStart = arrivalIntervalStart;
-    this.arrivalIntervalEnd = arrivalIntervalEnd;
-    this.departureIntervalStart = departureIntervalStart;
-    this.departureIntervalEnd = departureIntervalEnd;
-    this.servers = servers;
-    this.capacity = capacity;
+  constructor(params: QueueParams) {
+    this.arrivalIntervalStart = params.arrivalIntervalStart;
+    this.arrivalIntervalEnd = params.arrivalIntervalEnd;
+    this.departureIntervalStart = params.departureIntervalStart;
+    this.departureIntervalEnd = params.departureIntervalEnd;
+    this.servers = params.servers;
+    this.capacity = params.capacity;
     this.state = [];
-    this.maxIterations = maxIterations;
+    this.totalIterations = params.totalIterations;
     this.length = 0;
     this.globalTime = 0;
     this.loss = 0;
+    this.random = params.random;
+    this.scheduler = params.scheduler;
   }
 
   countTime(time: number): void {
@@ -43,21 +51,10 @@ export default class Queue {
   }
 
   execute(): void {
-    const random = new Random(4, 4, this.maxIterations, 1);
-    const scheduler = new Scheduler();
-
-    scheduler.schedule(
-      EventType.ARRIVAL,
-      this.arrivalIntervalStart,
-      this.arrivalIntervalEnd,
-      random.generate(),
-      this.globalTime
-    );
-
     let nextEvent: Event | undefined;
 
-    for (let i = 0; i < this.maxIterations; i++) {
-      nextEvent = scheduler.getNext();
+    for (let i = 0; i < this.totalIterations; i++) {
+      nextEvent = this.scheduler.getNext();
 
       if (!nextEvent) {
         console.log('There is no new event');
@@ -65,28 +62,29 @@ export default class Queue {
       }
 
       if (nextEvent.type === EventType.ARRIVAL) {
-        //contabiliza tempo
         this.countTime(nextEvent.time);
 
         if (this.length < this.capacity) {
           this.length++;
           if (this.length <= this.servers) {
-            scheduler.schedule(
+            const randomNumber = this.random.generate();
+            this.scheduler.schedule(
               EventType.DEPARTURE,
               this.departureIntervalStart,
               this.departureIntervalEnd,
-              random.generate(),
+              randomNumber,
               this.globalTime
             );
           }
         } else {
           this.loss++;
         }
-        scheduler.schedule(
+        const randomNumber = this.random.generate();
+        this.scheduler.schedule(
           EventType.ARRIVAL,
           this.arrivalIntervalStart,
           this.arrivalIntervalEnd,
-          random.generate(),
+          randomNumber,
           this.globalTime
         );
       } else {
@@ -95,22 +93,18 @@ export default class Queue {
         this.length--;
 
         if (this.length >= this.servers) {
-          scheduler.schedule(
+          const randomNumber = this.random.generate();
+          this.scheduler.schedule(
             EventType.DEPARTURE,
             this.departureIntervalStart,
             this.departureIntervalEnd,
-            random.generate(),
+            randomNumber,
             this.globalTime
           );
         }
       }
     }
 
-    console.log('loss', this.loss);
-    // console.log('length', this.length);
-    // console.log('global time', this.globalTime);
-    // console.log('state', this.state);
-    // console.log('history', scheduler.history.sort((a, b) => a.time > b.time ? 1 : -1));
     this.results();
     process.exit(0);
   }
@@ -122,6 +116,7 @@ export default class Queue {
       console.log(`${i} | ${this.state[i].toFixed(4)} | ${percent.toFixed(4)}%`);
     }
     console.log(`total | ${this.globalTime.toFixed(4)} | 100% `);
+    console.log('loss', this.loss);
+    console.log('global time', this.globalTime);
   }
-
 }
