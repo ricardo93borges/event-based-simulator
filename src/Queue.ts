@@ -58,7 +58,7 @@ export default class Queue {
 
       if (!nextEvent) {
         console.log('There is no new event');
-        process.exit(0);
+        return;
       }
 
       if (nextEvent.type === EventType.ARRIVAL) {
@@ -104,19 +104,5 @@ export default class Queue {
         }
       }
     }
-
-    this.results();
-    process.exit(0);
-  }
-
-  results(): void {
-    console.log('queue state | time | probability');
-    for (let i = 0; i < this.state.length; i++) {
-      const percent = (this.state[i] / this.globalTime) * 100;
-      console.log(`${i} | ${this.state[i].toFixed(4)} | ${percent.toFixed(4)}%`);
-    }
-    console.log(`total | ${this.globalTime.toFixed(4)} | 100% `);
-    console.log('loss', this.loss);
-    console.log('global time', this.globalTime);
   }
 }

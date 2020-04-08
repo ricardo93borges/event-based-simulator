@@ -26,6 +26,17 @@ export default class Simulator {
     return scheduler;
   }
 
+  printResults(queue: Queue): void {
+    console.log('queue state | time | probability');
+    for (let i = 0; i < queue.state.length; i++) {
+      const percent = (queue.state[i] / queue.globalTime) * 100;
+      console.log(`${i} | ${queue.state[i].toFixed(4)} | ${percent.toFixed(4)}%`);
+    }
+    console.log(`total | ${queue.globalTime.toFixed(4)} | 100% `);
+    console.log('loss', queue.loss);
+    console.log('global time', queue.globalTime);
+  }
+
   run(): void {
     const queueParams = {
       arrivalIntervalStart: 1,
@@ -40,5 +51,7 @@ export default class Simulator {
     };
     const queue = new Queue(queueParams);
     queue.execute();
+    this.printResults(queue);
+    process.exit(0);
   }
 }

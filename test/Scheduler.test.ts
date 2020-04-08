@@ -19,7 +19,7 @@ describe('Random class tests', () => {
   it('should schedule an arrival event', () => {
     const randomNumber = random.generate(); // 0.5555
     const eventTime = scheduler.calculateTime(1, 2, randomNumber); // 1.5555
-    scheduler.schedule(EventType.ARRIVAL, 1, 2, randomNumber);
+    scheduler.schedule(EventType.ARRIVAL, 1, 2, randomNumber, 0);
 
     expect(scheduler.events).toEqual(
       expect.arrayContaining([
@@ -34,7 +34,7 @@ describe('Random class tests', () => {
   it('should schedule an departure event', () => {
     const randomNumber = random.generate(); // 0.5555
     const eventTime = scheduler.calculateTime(3, 6, randomNumber); // 4.6665
-    scheduler.schedule(EventType.DEPARTURE, 3, 6, randomNumber);
+    scheduler.schedule(EventType.DEPARTURE, 3, 6, randomNumber, 0);
 
     expect(scheduler.events).toEqual(
       expect.arrayContaining([
@@ -50,8 +50,8 @@ describe('Random class tests', () => {
     const firstRandomNumber = random.generate(); // 0.5555
     const secondRandomNumber = random.generate();
 
-    scheduler.schedule(EventType.ARRIVAL, 1, 2, firstRandomNumber);
-    scheduler.schedule(EventType.DEPARTURE, 3, 6, secondRandomNumber);
+    scheduler.schedule(EventType.ARRIVAL, 1, 2, firstRandomNumber, 0);
+    scheduler.schedule(EventType.DEPARTURE, 3, 6, secondRandomNumber, 0);
 
     const nextEvent = scheduler.getNext();
     expect(nextEvent.type).toEqual(EventType.ARRIVAL);
