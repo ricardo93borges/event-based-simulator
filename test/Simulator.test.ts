@@ -8,7 +8,20 @@ describe('Simulator class test', () => {
 
   beforeEach(() => {
     random = new Random(12312431, 17, 2147483648, 7);
-    simulator = new Simulator(10);
+    const queues = [{
+      id: 1,
+      arrivalIntervalStart: 1,
+      arrivalIntervalEnd: 2,
+      departureIntervalStart: 3,
+      departureIntervalEnd: 6,
+      servers: 1,
+      capacity: 3,
+      state: [],
+      length: 0,
+      globalTime: 0,
+      loss: 0,
+    }];
+    simulator = new Simulator(10, queues);
   });
 
   it('Should count time', () => {
@@ -37,13 +50,13 @@ describe('Simulator class test', () => {
   it.only('Should execute', () => {
     simulator.run();
 
-    /* expect(simulator.globalTime).toBeCloseTo(13.2273, 1);
+    expect(simulator.globalTime).toBeCloseTo(13.2273, 1);
     expect(simulator.queues[0].length).toEqual(3);
     expect(simulator.queues[0].loss).toEqual(3);
     expect(simulator.queues[0].state[0]).toBeCloseTo(2, 1);
     expect(simulator.queues[0].state[1]).toBeCloseTo(1.9, 1);
     expect(simulator.queues[0].state[2]).toBeCloseTo(3.12, 1);
-    expect(simulator.queues[0].state[3]).toBeCloseTo(6.19, 1); */
+    expect(simulator.queues[0].state[3]).toBeCloseTo(6.19, 1);
   });
 
 });

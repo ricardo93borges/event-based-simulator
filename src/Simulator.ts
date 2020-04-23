@@ -2,7 +2,7 @@ import Queue from './Queue';
 import Random from './Random';
 import Scheduler, { EventType } from './Scheduler';
 
-// TODO read entry file
+// TODO handle queues with multiple targets
 // TODO handle queue infinity capacity
 // TODO queues with routing probability
 
@@ -13,8 +13,8 @@ export default class Simulator {
   globalTime: number;
   queues: Queue[];
 
-  constructor(totalIterations: number) {
-    this.queues = this.setupQueues();
+  constructor(totalIterations: number, queues: Queue[]) {
+    this.queues = queues;
     this.random = this.setupRandom();
     this.scheduler = this.setupScheduler();
     this.totalIterations = totalIterations;
@@ -36,29 +36,6 @@ export default class Simulator {
       queue: this.queues[0]
     });
     return scheduler;
-  }
-
-  setupQueues(): Queue[] {
-    const queue1 = new Queue({
-      id: 1,
-      arrivalIntervalStart: 2,
-      arrivalIntervalEnd: 3,
-      departureIntervalStart: 2,
-      departureIntervalEnd: 5,
-      servers: 2,
-      capacity: 3,
-    });
-    const queue2 = new Queue({
-      id: 2,
-      arrivalIntervalStart: 2,
-      arrivalIntervalEnd: 5,
-      departureIntervalStart: 3,
-      departureIntervalEnd: 5,
-      servers: 1,
-      capacity: 3,
-    });
-    queue1.target = queue2;
-    return [queue1, queue2];
   }
 
   printResults(): void {
