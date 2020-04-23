@@ -1,11 +1,24 @@
 export enum EventType {
   ARRIVAL = 'ARRIVAL',
-  DEPARTURE = 'DEPARTURE'
+  DEPARTURE = 'DEPARTURE',
+  TRANSITION = 'TRANSITION',
 }
 
 export interface Event {
   type: EventType;
   time: number;
+  source?: number;
+  target?: number;
+}
+
+export interface ScheduleParams {
+  type: EventType;
+  start: number;
+  end: number;
+  random: number;
+  globalTime: number;
+  source?: number;
+  target?: number;
 }
 
 export default class Scheduler {
@@ -21,16 +34,20 @@ export default class Scheduler {
     return (end - start) * random + start;
   }
 
-  schedule = (type: EventType, start: number, end: number, random: number, globalTime: number): void => {
-    const time = globalTime + this.calculateTime(start, end, random);
+  schedule = (scheduleParams: ScheduleParams): void => {
+    const time = scheduleParams.globalTime + this.calculateTime(
+      scheduleParams.start,
+      scheduleParams.end,
+      scheduleParams.random
+    );
 
     this.events.push({
-      type,
-      time
+      time,
+      type: scheduleParams.type,
     });
     this.history.push({
-      type,
-      time
+      time,
+      type: scheduleParams.type,
     });
   }
 
