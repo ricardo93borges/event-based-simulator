@@ -4,7 +4,6 @@ import Scheduler, { EventType } from './Scheduler';
 
 // TODO read entry file
 // TODO handle queue infinity capacity
-// TODO tandem queues
 // TODO queues with routing probability
 
 export default class Simulator {
@@ -31,60 +30,96 @@ export default class Simulator {
 
   setupScheduler(): Scheduler {
     const scheduler = new Scheduler();
-    scheduler.events.push({ type: EventType.ARRIVAL, time: 2 });
+    scheduler.events.push({
+      type: EventType.ARRIVAL,
+      time: 2,
+      queue: this.queues[0]
+    });
     return scheduler;
   }
 
   setupQueues(): Queue[] {
-    const queue = new Queue({
+    const queue1 = new Queue({
       id: 1,
-      arrivalIntervalStart: 1,
-      arrivalIntervalEnd: 2,
+      arrivalIntervalStart: 2,
+      arrivalIntervalEnd: 3,
+      departureIntervalStart: 2,
+      departureIntervalEnd: 5,
+      servers: 2,
+      capacity: 3,
+    });
+    const queue2 = new Queue({
+      id: 2,
+      arrivalIntervalStart: 2,
+      arrivalIntervalEnd: 5,
       departureIntervalStart: 3,
-      departureIntervalEnd: 6,
+      departureIntervalEnd: 5,
       servers: 1,
       capacity: 3,
     });
-    return [queue];
+    queue1.target = queue2;
+    return [queue1, queue2];
   }
 
-  printResults(queue: Queue): void {
-    console.log(` Queue: ${queue.id}`);
-    console.log('state | time | probability');
-    for (let i = 0; i < queue.state.length; i++) {
-      const percent = (queue.state[i] / this.globalTime) * 100;
-      console.log(`${i} | ${queue.state[i].toFixed(4)} | ${percent.toFixed(4)}%`);
-    }
-    console.log(`total | ${this.globalTime.toFixed(4)} | 100% `);
-    console.log('loss', queue.loss);
+  printResults(): void {
+    this.queues.forEach(queue => {
+      console.log(`Queue: ${queue.id} | G/G/${queue.servers}/${queue.capacity} | Arrival ${queue.arrivalIntervalStart}..${queue.arrivalIntervalEnd} | Service ${queue.departureIntervalStart}..${queue.departureIntervalEnd} `);
+      console.log('state | time | probability');
+      for (let i = 0; i < queue.state.length; i++) {
+        const percent = (queue.state[i] / this.globalTime) * 100;
+        console.log(`${i} | ${queue.state[i].toFixed(4)} | ${percent.toFixed(4)}%`);
+      }
+      console.log(`total | ${this.globalTime.toFixed(4)} | 100% `);
+      console.log('losses', queue.loss);
+      console.log(' -------- ');
+    });
     console.log('global time', this.globalTime);
-    console.log(' -------- ');
   }
 
   countTime(time: number): void {
+    const delta = time - this.globalTime;
     this.queues.forEach(queue => {
       const accumulatedTime = queue.state[queue.length] ? queue.state[queue.length] : 0;
-      const delta = time - this.globalTime;
-      this.globalTime = this.globalTime + delta;
       queue.state[queue.length] = accumulatedTime + delta;
     });
+    this.globalTime = this.globalTime + delta;
   }
 
-  schedule(eventType: EventType, start: number, end: number): void {
-    const random = this.random.generate();
-
+  scheduleArrival(queue: Queue): void {
     this.scheduler.schedule({
-      start,
-      end,
-      random,
-      type: eventType,
+      queue,
+      start: queue.arrivalIntervalStart,
+      end: queue.arrivalIntervalEnd,
+      random: this.random.generate(),
+      type: EventType.ARRIVAL,
       globalTime: this.globalTime
     });
   }
 
-  // TODO handle transition event
+  scheduleDeparture(queue: Queue): void {
+    this.scheduler.schedule({
+      queue,
+      start: queue.departureIntervalStart,
+      end: queue.departureIntervalEnd,
+      random: this.random.generate(),
+      type: EventType.DEPARTURE,
+      globalTime: this.globalTime
+    });
+  }
+
+  scheduleTransition(queue: Queue): void {
+    this.scheduler.schedule({
+      queue,
+      start: queue.departureIntervalStart,
+      end: queue.departureIntervalEnd,
+      random: this.random.generate(),
+      type: EventType.TRANSITION,
+      globalTime: this.globalTime,
+      target: queue.target,
+    });
+  }
+
   run(): void {
-    const queue1 = this.queues[0];
     for (let i = 0; i < this.totalIterations; i++) {
 
       const nextEvent = this.scheduler.getNext();
@@ -94,28 +129,54 @@ export default class Simulator {
         return;
       }
 
+      const queue = nextEvent.queue;
+
       if (nextEvent.type === EventType.ARRIVAL) {
         this.countTime(nextEvent.time);
 
-        if (queue1.length < queue1.capacity) {
-          queue1.length++;
-          if (queue1.length <= queue1.servers) {
-            this.schedule(EventType.DEPARTURE, queue1.departureIntervalStart, queue1.departureIntervalEnd);
+        if (queue.length < queue.capacity) {
+          queue.length++;
+          if (queue.length <= queue.servers) {
+            if (queue.target) {
+              this.scheduleTransition(queue);
+            } else {
+              this.scheduleDeparture(queue);
+            }
           }
         } else {
-          queue1.loss++;
+          queue.loss++;
         }
-        this.schedule(EventType.ARRIVAL, queue1.arrivalIntervalStart, queue1.arrivalIntervalEnd);
-      } else {
+        this.scheduleArrival(queue);
+      } else if (nextEvent.type === EventType.DEPARTURE) {
         this.countTime(nextEvent.time);
-        queue1.length--;
+        queue.length--;
 
-        if (queue1.length >= queue1.servers) {
-          this.schedule(EventType.DEPARTURE, queue1.departureIntervalStart, queue1.departureIntervalEnd);
+        if (queue.length >= queue.servers) {
+          this.scheduleDeparture(queue);
+        }
+      } else if (nextEvent.type === EventType.TRANSITION) {
+        if (!queue.target) {
+          throw new Error('Queue does not have a target');
+        }
+
+        this.countTime(nextEvent.time);
+        queue.length--;
+
+        if (queue.length >= queue.servers) {
+          this.scheduleTransition(queue);
+        }
+
+        if (queue.target.length < queue.target.capacity) {
+          queue.target.length++;
+          if (queue.target.length <= queue.target.servers) {
+            this.scheduleDeparture(queue.target);
+          }
+        } else {
+          queue.target.loss++;
         }
       }
     }
 
-    this.printResults(queue1);
+    this.printResults();
   }
 }

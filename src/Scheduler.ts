@@ -1,3 +1,5 @@
+import Queue from './Queue';
+
 export enum EventType {
   ARRIVAL = 'ARRIVAL',
   DEPARTURE = 'DEPARTURE',
@@ -7,8 +9,8 @@ export enum EventType {
 export interface Event {
   type: EventType;
   time: number;
-  source?: number;
-  target?: number;
+  queue: Queue;
+  target?: Queue;
 }
 
 export interface ScheduleParams {
@@ -17,8 +19,8 @@ export interface ScheduleParams {
   end: number;
   random: number;
   globalTime: number;
-  source?: number;
-  target?: number;
+  queue: Queue;
+  target?: Queue;
 }
 
 export default class Scheduler {
@@ -44,10 +46,12 @@ export default class Scheduler {
     this.events.push({
       time,
       type: scheduleParams.type,
+      queue: scheduleParams.queue,
     });
     this.history.push({
       time,
       type: scheduleParams.type,
+      queue: scheduleParams.queue,
     });
   }
 
