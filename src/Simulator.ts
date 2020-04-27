@@ -3,7 +3,6 @@ import Random from './Random';
 import Scheduler, { EventType } from './Scheduler';
 
 // TODO handle queues with multiple targets
-// TODO handle queue infinity capacity
 // TODO queues with routing probability
 
 export default class Simulator {
@@ -25,13 +24,24 @@ export default class Simulator {
     this.queues.forEach(queue => {
       console.log(`Queue: ${queue.id} | G/G/${queue.servers}/${queue.capacity} | Arrival ${queue.arrivalIntervalStart}..${queue.arrivalIntervalEnd} | Service ${queue.departureIntervalStart}..${queue.departureIntervalEnd} `);
       console.log('state | time | probability');
-      for (let i = 0; i < queue.state.length; i++) {
+
+      let max = queue.state.length;
+      if (queue.capacity === Infinity && queue.state.length > 10) {
+        max = 10;
+      }
+
+      for (let i = 0; i < max; i++) {
         const percent = (queue.state[i] / this.globalTime) * 100;
         console.log(`${i} | ${queue.state[i].toFixed(4)} | ${percent.toFixed(4)}`);
       }
-      console.log(`total | ${this.globalTime.toFixed(4)} | 100% `);
+
+      if (queue.capacity === Infinity) {
+        console.log(`... more ${queue.state.length - max}`);
+      }
+
+      console.log(`\ntotal | ${this.globalTime.toFixed(4)} | 100% `);
       console.log('losses', queue.loss);
-      console.log(' -------- ');
+      console.log('\n -------- \n');
     });
     console.log('global time', this.globalTime);
   }

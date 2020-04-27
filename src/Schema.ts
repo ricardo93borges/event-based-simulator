@@ -49,7 +49,7 @@ export default class Schema {
         departureIntervalStart: queue.departureIntervalStart,
         departureIntervalEnd: queue.departureIntervalEnd,
         servers: queue.servers,
-        capacity: queue.capacity,
+        capacity: queue.capacity === null ? Infinity : queue.capacity,
       });
     });
 
