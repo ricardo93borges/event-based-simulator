@@ -13,29 +13,12 @@ export default class Simulator {
   globalTime: number;
   queues: Queue[];
 
-  constructor(totalIterations: number, queues: Queue[]) {
+  constructor(totalIterations: number, queues: Queue[], scheduler: Scheduler, random: Random) {
     this.queues = queues;
-    this.random = this.setupRandom();
-    this.scheduler = this.setupScheduler();
+    this.random = random;
     this.totalIterations = totalIterations;
     this.globalTime = 0;
-  }
-
-  setupRandom(): Random {
-    const a = 12312431;
-    const c = 17;
-    const m = 2147483648;
-    return new Random(a, c, m, 7);
-  }
-
-  setupScheduler(): Scheduler {
-    const scheduler = new Scheduler();
-    scheduler.events.push({
-      type: EventType.ARRIVAL,
-      time: 2,
-      queue: this.queues[0]
-    });
-    return scheduler;
+    this.scheduler = scheduler;
   }
 
   printResults(): void {
@@ -44,7 +27,7 @@ export default class Simulator {
       console.log('state | time | probability');
       for (let i = 0; i < queue.state.length; i++) {
         const percent = (queue.state[i] / this.globalTime) * 100;
-        console.log(`${i} | ${queue.state[i].toFixed(4)} | ${percent.toFixed(4)}%`);
+        console.log(`${i} | ${queue.state[i].toFixed(4)} | ${percent.toFixed(4)}`);
       }
       console.log(`total | ${this.globalTime.toFixed(4)} | 100% `);
       console.log('losses', queue.loss);

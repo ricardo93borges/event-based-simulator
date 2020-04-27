@@ -1,5 +1,5 @@
 import Random from '../src/Random';
-import { EventType } from '../src/Scheduler';
+import Scheduler, { EventType } from '../src/Scheduler';
 import Simulator from '../src/Simulator';
 
 describe('Simulator class test', () => {
@@ -21,7 +21,15 @@ describe('Simulator class test', () => {
       globalTime: 0,
       loss: 0,
     }];
-    simulator = new Simulator(10, queues);
+
+    const scheduler = new Scheduler();
+    scheduler.events.push({
+      type: EventType.ARRIVAL,
+      time: 2,
+      queue: queues[0]
+    });
+
+    simulator = new Simulator(10, queues, scheduler, random);
   });
 
   it('Should count time', () => {

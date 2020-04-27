@@ -1,5 +1,6 @@
 import fs from 'fs';
 import Queue from './Queue';
+import Scheduler, { EventType } from './Scheduler';
 
 export interface Arrival {
   queue: number;
@@ -38,7 +39,7 @@ export default class Schema {
     return JSON.parse(rawData);
   };
 
-  setupQueues(): Queue[] {
+  setup(): [Queue[], Scheduler] {
     const json = this.readFile();
     const queues = json.queues.map((queue: SchemaQueue) => {
       return new Queue({
@@ -58,6 +59,13 @@ export default class Schema {
       queues[sourceIndex].target = queues[targetIndex];
     });
 
-    return queues;
+    const scheduler = new Scheduler();
+    scheduler.events = json.arrivals.map(arrival => ({
+      type: EventType.ARRIVAL,
+      time: arrival.time,
+      queue: queues.find(q => q.id = arrival.queue) as Queue,
+    }));
+
+    return [queues, scheduler];
   }
 }

@@ -2,7 +2,7 @@
   "arrivals": [
     {
       "queue": 1,
-      "time": 2
+      "time": 2.5
     }
   ],
   "queues": [
@@ -13,7 +13,7 @@
       "departureIntervalStart": 2,
       "departureIntervalEnd": 5,
       "servers": 2,
-      "capacity": 3,
+      "capacity": 3
     },
     {
       "id": 2,
