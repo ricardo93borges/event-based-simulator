@@ -56,7 +56,7 @@ describe('Simulator class test', () => {
     expect(simulator.queues[0].state[1]).toEqual(1);
   });
 
-  it.only('Should execute', () => {
+  it('Should execute', () => {
     simulator.run();
 
     expect(simulator.globalTime).toBeCloseTo(13.2273, 1);
