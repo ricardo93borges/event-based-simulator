@@ -1,9 +1,6 @@
-import Queue from './Queue';
+import Queue, { Transition } from './Queue';
 import Random from './Random';
 import Scheduler, { EventType } from './Scheduler';
-
-// TODO handle queues with multiple targets
-// TODO queues with routing probability
 
 export default class Simulator {
   random: Random;
@@ -11,6 +8,8 @@ export default class Simulator {
   scheduler: Scheduler;
   globalTime: number;
   queues: Queue[];
+  transitionsDeparture = 0;
+  transitionsEvent = 0;
 
   constructor(totalIterations: number, queues: Queue[], scheduler: Scheduler, random: Random) {
     this.queues = queues;
@@ -44,6 +43,26 @@ export default class Simulator {
       console.log('\n -------- \n');
     });
     console.log('global time', this.globalTime);
+
+    let a = 0;
+    let d = 0;
+    let t = 0;
+
+    this.scheduler.history.forEach(e => {
+      if (e.type === EventType.ARRIVAL)
+        a++;
+      if (e.type === EventType.DEPARTURE)
+        d++;
+      if (e.type === EventType.TRANSITION)
+        t++;
+    });
+
+    console.log('\nevents', this.scheduler.history.length);
+    console.log('arrivals', a);
+    console.log('departures', d);
+    console.log('transitions', t);
+    console.log('\ntransitionsDeparture', this.transitionsDeparture);
+    console.log('transitionsEvent', this.transitionsEvent);
   }
 
   countTime(time: number): void {
@@ -78,15 +97,56 @@ export default class Simulator {
   }
 
   scheduleTransition(queue: Queue): void {
-    this.scheduler.schedule({
-      queue,
-      start: queue.departureIntervalStart,
-      end: queue.departureIntervalEnd,
-      random: this.random.generate(),
-      type: EventType.TRANSITION,
-      globalTime: this.globalTime,
-      target: queue.target,
-    });
+    const target = this.chooseTarget(queue.targets);
+    if (target === EventType.DEPARTURE) {
+      this.scheduleDeparture(queue);
+      this.transitionsDeparture++;
+    } else if (target instanceof Queue) {
+      this.scheduler.schedule({
+        queue,
+        target,
+        start: queue.departureIntervalStart,
+        end: queue.departureIntervalEnd,
+        random: this.random.generate(),
+        type: EventType.TRANSITION,
+        globalTime: this.globalTime,
+      });
+      this.transitionsEvent++;
+    }
+  }
+
+  chooseTarget(transitions: Transition[]): Queue | EventType {
+    const random = Math.random();
+    const sortedTransitions = transitions.sort((a, b) => a.probability > b.probability ? -1 : 1);
+
+    let transition = null;
+    if (random < sortedTransitions[0].probability) {
+      transition = sortedTransitions[0];
+    }
+    for (let i = 1; i < sortedTransitions.length; i++) {
+      if (random > (1 - sortedTransitions[i].probability)) {
+        transition = sortedTransitions[i];
+      }
+    }
+
+    if (!transition) {
+      transition = sortedTransitions[sortedTransitions.length - 1];
+    }
+
+    if (!transition) {
+      console.log(sortedTransitions);
+      console.log(random);
+      throw new Error('No target for transition');
+    }
+
+    if (transitions.length === 3) {
+      console.log(sortedTransitions.map(t => t.probability));
+      console.log(random);
+      console.log(transition.probability);
+      console.log('-------');
+    }
+
+    return transition.target;
   }
 
   run(): void {
@@ -107,7 +167,7 @@ export default class Simulator {
         if (queue.length < queue.capacity) {
           queue.length++;
           if (queue.length <= queue.servers) {
-            if (queue.target) {
+            if (queue.targets.length > 0) {
               this.scheduleTransition(queue);
             } else {
               this.scheduleDeparture(queue);
@@ -122,11 +182,15 @@ export default class Simulator {
         queue.length--;
 
         if (queue.length >= queue.servers) {
-          this.scheduleDeparture(queue);
+          if (queue.targets.length > 0) {
+            this.scheduleTransition(queue);
+          } else {
+            this.scheduleDeparture(queue);
+          }
         }
       } else if (nextEvent.type === EventType.TRANSITION) {
-        if (!queue.target) {
-          throw new Error('Queue does not have a target');
+        if (!nextEvent.target) {
+          throw new Error('Next event does not have a target');
         }
 
         this.countTime(nextEvent.time);
@@ -136,13 +200,13 @@ export default class Simulator {
           this.scheduleTransition(queue);
         }
 
-        if (queue.target.length < queue.target.capacity) {
-          queue.target.length++;
-          if (queue.target.length <= queue.target.servers) {
-            this.scheduleDeparture(queue.target);
+        if (nextEvent.target.length < nextEvent.target.capacity) {
+          nextEvent.target.length++;
+          if (nextEvent.target.length <= nextEvent.target.servers) {
+            this.scheduleDeparture(nextEvent.target);
           }
         } else {
-          queue.target.loss++;
+          nextEvent.target.loss++;
         }
       }
     }

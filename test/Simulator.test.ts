@@ -20,6 +20,7 @@ describe('Simulator class test', () => {
       length: 0,
       globalTime: 0,
       loss: 0,
+      targets: [],
     }];
 
     const scheduler = new Scheduler();

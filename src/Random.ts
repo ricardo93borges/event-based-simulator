@@ -3,10 +3,10 @@
  */
 export default class Random {
 
-  private a: number;
-  private c: number;
-  private m: number;
-  private x: number;
+  a: number;
+  c: number;
+  m: number;
+  x: number;
 
   constructor(a: number, c: number, m: number, x: number) {
     this.a = a;

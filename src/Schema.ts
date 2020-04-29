@@ -9,7 +9,8 @@ export interface Arrival {
 
 export interface Transition {
   source: number;
-  target: number;
+  target: number | string;
+  probability: number;
 }
 
 export interface SchemaQueue {
@@ -37,7 +38,7 @@ export default class Schema {
     const rawData = fs.readFileSync(`${__dirname}/../schema.json`);
     // @ts-ignore
     return JSON.parse(rawData);
-  };
+  }
 
   setup(): [Queue[], Scheduler] {
     const json = this.readFile();
@@ -55,8 +56,19 @@ export default class Schema {
 
     json.transitions.map((transition: Transition) => {
       const sourceIndex = queues.findIndex((q: Queue) => q.id === transition.source);
-      const targetIndex = queues.findIndex((q: Queue) => q.id === transition.target);
-      queues[sourceIndex].target = queues[targetIndex];
+
+      let target;
+      if (transition.target === 'DEPARTURE') {
+        target = EventType.DEPARTURE;
+      } else {
+        const queueIndex = queues.findIndex((q: Queue) => q.id === transition.target);
+        target = queues[queueIndex];
+      }
+
+      queues[sourceIndex].targets.push({
+        target,
+        probability: transition.probability,
+      });
     });
 
     const scheduler = new Scheduler();

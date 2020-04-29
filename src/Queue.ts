@@ -1,3 +1,5 @@
+import { EventType } from './Scheduler';
+
 export interface QueueParams {
   id: number;
   arrivalIntervalStart: number;
@@ -7,6 +9,12 @@ export interface QueueParams {
   servers: number;
   capacity: number;
 }
+
+export interface Transition {
+  target: Queue | EventType;
+  probability: number;
+}
+
 export default class Queue {
   id: number;
   arrivalIntervalStart: number;
@@ -19,7 +27,7 @@ export default class Queue {
   length: number;
   globalTime: number;
   loss: number;
-  target?: Queue;
+  targets: Transition[];
 
   constructor(params: QueueParams) {
     this.id = params.id;
@@ -33,5 +41,6 @@ export default class Queue {
     this.length = 0;
     this.globalTime = 0;
     this.loss = 0;
+    this.targets = [];
   }
 }

@@ -47,11 +47,13 @@ export default class Scheduler {
       time,
       type: scheduleParams.type,
       queue: scheduleParams.queue,
+      target: scheduleParams.target,
     });
     this.history.push({
       time,
       type: scheduleParams.type,
       queue: scheduleParams.queue,
+      target: scheduleParams.target,
     });
   }
 

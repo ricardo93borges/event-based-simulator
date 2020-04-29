@@ -8,27 +8,67 @@
   "queues": [
     {
       "id": 1,
-      "arrivalIntervalStart": 2,
-      "arrivalIntervalEnd": 3,
-      "departureIntervalStart": 2,
-      "departureIntervalEnd": 5,
-      "servers": 2,
-      "capacity": 3
+      "arrivalIntervalStart": 1,
+      "arrivalIntervalEnd": 4,
+      "departureIntervalStart": 1,
+      "departureIntervalEnd": 1.5,
+      "servers": 1,
+      "capacity": null
     },
     {
       "id": 2,
-      "arrivalIntervalStart": 2,
-      "arrivalIntervalEnd": 5,
-      "departureIntervalStart": 3,
-      "departureIntervalEnd": 5,
-      "servers": 1,
-      "capacity": 3
+      "arrivalIntervalStart": 1,
+      "arrivalIntervalEnd": 1.5,
+      "departureIntervalStart": 5,
+      "departureIntervalEnd": 10,
+      "servers": 3,
+      "capacity": 5
+    },
+    {
+      "id": 3,
+      "arrivalIntervalStart": 1,
+      "arrivalIntervalEnd": 1.5,
+      "departureIntervalStart": 10,
+      "departureIntervalEnd": 20,
+      "servers": 2,
+      "capacity": 8
     }
   ],
   "transitions": [
     {
       "source": 1,
-      "target": 2
+      "target": 2,
+      "probability": 0.8
+    },
+    {
+      "source": 1,
+      "target": 3,
+      "probability": 0.2
+    },
+    {
+      "source": 2,
+      "target": 1,
+      "probability": 0.3
+    },
+    {
+      "source": 2,
+      "target": 3,
+      "probability": 0.5
+    },
+    {
+      "source": 2,
+      "target": "DEPARTURE",
+      "probability": 0.2
+    },
+    {
+      "source": 3,
+      "target": 2,
+      "probability": 0.7
+    },
+    {
+      "source": 3,
+      "target": "DEPARTURE",
+      "probability": 0.3
     }
   ]
 }
