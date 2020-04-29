@@ -116,34 +116,34 @@ export default class Simulator {
   }
 
   chooseTarget(transitions: Transition[]): Queue | EventType {
-    const random = Math.random();
+    let random = parseFloat(Math.random().toFixed(1));
+    if (random <= 0.1) {
+      random = 0.1;
+    }
     const sortedTransitions = transitions.sort((a, b) => a.probability > b.probability ? -1 : 1);
 
-    let transition = null;
-    if (random < sortedTransitions[0].probability) {
-      transition = sortedTransitions[0];
-    }
-    for (let i = 1; i < sortedTransitions.length; i++) {
-      if (random > (1 - sortedTransitions[i].probability)) {
-        transition = sortedTransitions[i];
+    let transition;
+
+    if (transitions.length === 1) {
+      transition = transitions[0];
+    } else if (transitions.length === 2) {
+      if (random <= sortedTransitions[0].probability) {
+        transition = sortedTransitions[0];
+      } else {
+        transition = sortedTransitions[1];
+      }
+    } else {
+      transition = sortedTransitions[sortedTransitions.length - 1];
+      for (let i = 0; i < sortedTransitions.length; i++) {
+        if (random <= 1 - sortedTransitions[i].probability) {
+          transition = sortedTransitions[i];
+          break;
+        }
       }
     }
 
     if (!transition) {
-      transition = sortedTransitions[sortedTransitions.length - 1];
-    }
-
-    if (!transition) {
-      console.log(sortedTransitions);
-      console.log(random);
       throw new Error('No target for transition');
-    }
-
-    if (transitions.length === 3) {
-      console.log(sortedTransitions.map(t => t.probability));
-      console.log(random);
-      console.log(transition.probability);
-      console.log('-------');
     }
 
     return transition.target;
