@@ -17,8 +17,12 @@ Instal Node v12
 
 ### Usage
 
-Run the following
+Run the following to install the dependencies
 
 `npm i`
+
+Edit schema.json file to set up the queues.
+
+Run the following to execute:
 
 `npm start`
